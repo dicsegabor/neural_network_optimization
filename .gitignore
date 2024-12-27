@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+venv/
+.env/
+*.env
+
+# PyTorch
+*.pt
+*.pth
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Data files
+*.csv
+*.tsv
+
+# Miscellaneous
+*.log
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
