@@ -2,6 +2,7 @@ import random
 import torch
 
 from sklearn.metrics import mean_squared_error
+import numpy as np
 
 from main import preprocess_data, evaluate_model, prepare_dataloaders, train_model
 from src.models.mlp import MLPRegression
@@ -12,7 +13,10 @@ from tqdm import tqdm
 
 import itertools
 
-def generate_hidden_layers(min_layers=1, max_layers=4, min_neurons=8, max_neurons=128, step=8):
+
+def generate_hidden_layers(
+    min_layers=1, max_layers=4, min_neurons=8, max_neurons=128, step=8
+):
     """Generate all possible hidden layer combinations."""
     for num_layers in range(min_layers, max_layers + 1):
         for combination in itertools.product(
@@ -20,13 +24,16 @@ def generate_hidden_layers(min_layers=1, max_layers=4, min_neurons=8, max_neuron
         ):
             yield combination
 
+
 def generate_dropout_rates(start=0.1, stop=0.5, step=0.1):
     """Generate dropout rates."""
     return (round(x, 2) for x in np.arange(start, stop + step, step))
 
+
 def generate_learning_rates(start_exp=-5, end_exp=-1, num_samples=10):
     """Generate learning rates logarithmically."""
     return np.logspace(start_exp, end_exp, num=num_samples)
+
 
 def generate_weight_decays(start_exp=-6, end_exp=-2, num_samples=5):
     """Generate weight decay values logarithmically."""
@@ -88,11 +95,21 @@ def genetic_algorithm(
     """Optimize hyperparameters using a genetic algorithm with multithreading."""
     # Define the hyperparameter search space
     search_space = {
-        "hidden_layers": list(generate_hidden_layers(min_layers=1, max_layers=3, min_neurons=8, max_neurons=64, step=8)),
+        "hidden_layers": list(
+            generate_hidden_layers(
+                min_layers=1, max_layers=3, min_neurons=8, max_neurons=64, step=8
+            )
+        ),
         "dropout_rate": list(generate_dropout_rates(start=0.1, stop=0.5, step=0.1)),
-        "learning_rate": list(generate_learning_rates(start_exp=-5, end_exp=-2, num_samples=20)),
-        "weight_decay": list(generate_weight_decays(start_exp=-6, end_exp=-2, num_samples=10)),
+        "learning_rate": list(
+            generate_learning_rates(start_exp=-5, end_exp=-2, num_samples=20)
+        ),
+        "weight_decay": list(
+            generate_weight_decays(start_exp=-6, end_exp=-2, num_samples=10)
+        ),
     }
+
+    print("Searchspaces created")
 
     # Initialize the population
     population = [
