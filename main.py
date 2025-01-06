@@ -114,7 +114,7 @@ def train_model(
     optimizer,
     num_epochs,
     patience,
-    save_path,
+    save_path=None,  # Default to None
 ):
     """Train the model with early stopping."""
     best_val_loss = float("inf")
@@ -149,12 +149,13 @@ def train_model(
 
         # Early stopping
         improvement_threshold = 1e-3  # Threshold for significant improvement
-
-        # Early stopping
         if val_loss < best_val_loss - improvement_threshold:
             best_val_loss = val_loss
             early_stop_counter = 0
-            torch.save(model.state_dict(), save_path)
+
+            # Save the best model only if save_path is provided
+            if save_path is not None:
+                torch.save(model.state_dict(), save_path)
         else:
             early_stop_counter += 1
 
@@ -162,8 +163,9 @@ def train_model(
             print("Early stopping triggered.")
             break
 
-    # Load the best model
-    model.load_state_dict(torch.load(save_path))
+    # Load the best model (only if save_path is provided)
+    if save_path is not None:
+        model.load_state_dict(torch.load(save_path))
     return model
 
 

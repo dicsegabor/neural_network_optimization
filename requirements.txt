@@ -6,3 +6,4 @@ matplotlib
 deap
 kagglehub
 kagglehub[pandas-datasets]
+tqdm
