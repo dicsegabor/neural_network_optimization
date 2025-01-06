@@ -10,6 +10,28 @@ from src.models.mlp import MLPRegression
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 
+import itertools
+
+def generate_hidden_layers(min_layers=1, max_layers=4, min_neurons=8, max_neurons=128, step=8):
+    """Generate all possible hidden layer combinations."""
+    for num_layers in range(min_layers, max_layers + 1):
+        for combination in itertools.product(
+            range(min_neurons, max_neurons + 1, step), repeat=num_layers
+        ):
+            yield combination
+
+def generate_dropout_rates(start=0.1, stop=0.5, step=0.1):
+    """Generate dropout rates."""
+    return (round(x, 2) for x in np.arange(start, stop + step, step))
+
+def generate_learning_rates(start_exp=-5, end_exp=-1, num_samples=10):
+    """Generate learning rates logarithmically."""
+    return np.logspace(start_exp, end_exp, num=num_samples)
+
+def generate_weight_decays(start_exp=-6, end_exp=-2, num_samples=5):
+    """Generate weight decay values logarithmically."""
+    return np.logspace(start_exp, end_exp, num=num_samples)
+
 
 def evaluate_individual(
     individual, x_train, x_test, y_train, y_test, batch_size, patience
@@ -58,18 +80,18 @@ def genetic_algorithm(
     x_test,
     y_train,
     y_test,
-    num_generations=10,
-    population_size=10,
+    num_generations=16,
+    population_size=20,
     patience=5,
     batch_size=32,
 ):
     """Optimize hyperparameters using a genetic algorithm with multithreading."""
     # Define the hyperparameter search space
     search_space = {
-        "hidden_layers": [(8,), (16, 8), (32, 16, 8)],
-        "dropout_rate": [0.1, 0.2, 0.3],
-        "learning_rate": [0.001, 0.0001, 0.00001],
-        "weight_decay": [1e-4, 1e-5, 1e-6],
+        "hidden_layers": list(generate_hidden_layers(min_layers=1, max_layers=3, min_neurons=8, max_neurons=64, step=8)),
+        "dropout_rate": list(generate_dropout_rates(start=0.1, stop=0.5, step=0.1)),
+        "learning_rate": list(generate_learning_rates(start_exp=-5, end_exp=-2, num_samples=20)),
+        "weight_decay": list(generate_weight_decays(start_exp=-6, end_exp=-2, num_samples=10)),
     }
 
     # Initialize the population
