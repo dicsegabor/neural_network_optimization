@@ -1,9 +1,13 @@
-import torch.nn as nn
-import torch
 import os
 import tempfile
+
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+import torch.nn as nn
+import torch
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+
+from src.load_data import DataHandler
 
 
 class MLPRegression(nn.Module):
@@ -140,7 +144,6 @@ class MLPRegression(nn.Module):
                 early_stop_counter += 1
 
             if early_stop_counter >= patience:
-                progress_bar.write("Early stopping triggered.")
                 break
 
         # Load the best model from the temporary file
@@ -155,3 +158,59 @@ class MLPRegression(nn.Module):
             plt.show()
 
         return self.model
+
+
+def evaluate_individual(
+    individual,
+    batch_size,
+    patience,
+    test_ratio=0.2,
+    validaion_ratio=0.2,
+    num_epochs=50,
+    improvement_threshold=1e-3,
+    show_plot=False,
+):
+    x_train, _, _, _ = DataHandler.split_traning_data(test_ratio)
+
+    # Initialize the model with the individual's hyperparameters
+    model = MLPRegression(
+        input_size=x_train.shape[1],
+        dropout_rate=individual["dropout_rate"],
+        hidden_layers=individual["hidden_layers"],
+    )
+    optimizer = torch.optim.Adam(
+        model.parameters(),
+        lr=individual["learning_rate"],
+        weight_decay=individual["weight_decay"],
+    )
+    criterion = torch.nn.MSELoss()
+
+    # Prepare data loaders
+    (train_loader, val_loader, test_data) = DataHandler.prepare_dataloaders(
+        batch_size, test_ratio, validaion_ratio
+    )
+
+    # Train the model
+    model.train_gradient_with_early_stop(
+        train_loader,
+        val_loader,
+        criterion,
+        optimizer,
+        num_epochs=num_epochs,
+        patience=patience,
+        show_plot=show_plot,
+        improvement_threshold=improvement_threshold,
+    )
+
+    # Evaluate fitness (validation loss)
+    test_predictions, y_test_exp = model.evaluate(test_data)
+    # Calculate metrics and visualize
+    mse = mean_squared_error(y_test_exp, test_predictions)
+    mae = mean_absolute_error(y_test_exp, test_predictions)
+    r2 = r2_score(
+        y_test_exp.numpy() if isinstance(y_test_exp, torch.Tensor) else y_test_exp,
+        test_predictions.numpy()
+        if isinstance(test_predictions, torch.Tensor)
+        else test_predictions,
+    )
+    return test_predictions, y_test_exp, mse, mae, r2
