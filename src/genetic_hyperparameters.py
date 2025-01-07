@@ -2,9 +2,8 @@ import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import math
 
-from tqdm import tqdm
-
 from src.mlp import evaluate_individual
+from src.cli import ProgressBarManager
 
 
 # Custom mutation function for "hidden_layers"
@@ -138,8 +137,9 @@ def genetic_algorithm(
     patience=5,
     batch_size=32,
     max_workers=4,
+    progress_manager: ProgressBarManager = None,
 ):
-    """Optimize hyperparameters using a genetic algorithm with multithreading."""
+    """Optimize hyperparameters using a genetic algorithm."""
     # Initialize the population
     population = [
         {
@@ -153,42 +153,70 @@ def genetic_algorithm(
 
     best_individual = None
     best_fitness = float("inf")
+    early_stop_counter = 0
 
-    for _ in tqdm(range(num_generations), desc="Generations"):
-        # Evaluate the fitness of each individual in parallel
+    if progress_manager:
+        progress_manager.start_generation_bar()
+
+    for generation in range(num_generations):
         fitness_scores = []
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            tasks = [
-                executor.submit(
-                    evaluate_individual,
-                    individual,
-                    batch_size,
-                    patience,
-                    0.2,
-                    0.2,
-                    50,
-                    1e-3,
-                    False,
-                )
-                for individual in population
-            ]
 
-        for future in tqdm(
-            as_completed(tasks), total=len(tasks), desc="Evaluating population"
-        ):
-            try:
-                # Get the result for this task
-                _, _, mse, _, _ = future.result()
-                fitness_scores.append(mse)
-            except Exception as e:
-                print(f"Error evaluating an individual: {e}")
-                fitness_scores.append(float("inf"))  # Assign a high fitness score
+        if progress_manager:
+            progress_manager.start_population_bar(generation)
+
+        tasks = []
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            for individual in population:
+                tasks.append(
+                    executor.submit(
+                        evaluate_individual,
+                        individual,
+                        batch_size,
+                        patience,
+                        0.2,
+                        0.2,
+                        50,
+                        1e-3,
+                        False,
+                    )
+                )
+
+            for future in as_completed(tasks):
+                try:
+                    # Get the result for this task
+                    _, _, mse, _, _ = future.result()
+                    fitness_scores.append(mse)
+                except Exception as e:
+                    print(f"Error evaluating an individual: {e}")
+                    fitness_scores.append(float("inf"))  # Assign a high fitness score
+
+                if progress_manager:
+                    progress_manager.update_population_bar()
+
+        if progress_manager:
+            progress_manager.close_population_bar()
 
         # Update the best individual
         for i, mse in enumerate(fitness_scores):
             if mse < best_fitness:
                 best_fitness = mse
                 best_individual = population[i]
+
+        # Early stopping logic
+        if best_fitness < float("inf"):
+            early_stop_counter = 0
+        else:
+            early_stop_counter += 1
+
+        if early_stop_counter >= patience:
+            if progress_manager:
+                progress_manager.generation_bar.set_postfix({"Status": "Early stop"})
+                progress_manager.generation_bar.total = (
+                    progress_manager.generation_bar.n
+                )
+                # Fill the progress bar
+                progress_manager.generation_bar.update(0)  # Refresh
+            break
 
         # Select parents (tournament selection)
         parents = select_parents(
@@ -197,6 +225,12 @@ def genetic_algorithm(
 
         # Create the next generation through crossover and mutation
         population = crossover_and_mutate(parents, population_size)
+
+        if progress_manager:
+            progress_manager.update_generation_bar()
+
+    if progress_manager:
+        progress_manager.close_generation_bar()
 
     print("\nBest hyperparameters found:", best_individual)
     print(f"MSE score: {best_fitness}")

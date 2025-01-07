@@ -143,7 +143,11 @@ class MLPRegression(nn.Module):
             else:
                 early_stop_counter += 1
 
+            # In casse of early stop, fill the progress bar, break cycle
             if early_stop_counter >= patience:
+                progress_bar.set_postfix({"Status": "Early stop"})
+                progress_bar.total = progress_bar.n
+                progress_bar.update(0)
                 break
 
         # Load the best model from the temporary file
