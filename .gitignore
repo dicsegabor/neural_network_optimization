@@ -15,10 +15,6 @@ venv/
 # Jupyter Notebooks
 .ipynb_checkpoints
 
-# Data files
-*.csv
-*.tsv
-
 # Miscellaneous
 *.log
 .DS_Store
