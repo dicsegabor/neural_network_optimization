@@ -3,6 +3,6 @@ numpy
 pandas
 scikit-learn
 matplotlib
-deap
 kagglehub
 kagglehub[pandas-datasets]
+tqdm
