@@ -8,10 +8,10 @@ if __name__ == "__main__":
     data_handler = DataHandler("data/melb_data.csv")
 
     individual = {
-        "hidden_layers": (32, 24),
-        "dropout_rate": 0.2,
-        "learning_rate": 0.0069519279617756054,
-        "weight_decay": 2.1544346900318823e-05,
+        "hidden_layers": (24, 16, 12, 8),
+        "dropout_rate": 0.3,
+        "learning_rate": 5e-06,
+        "weight_decay": 1e-06,
     }
 
     test_predictions, y_test_exp, mse, mae, r2 = evaluate_individual(
@@ -19,8 +19,8 @@ if __name__ == "__main__":
         batch_size=32,
         patience=10,
         test_ratio=0.2,
-        num_epochs=50,
-        improvement_threshold=1e-3,
+        num_epochs=100,
+        improvement_threshold=0.01,
         show_plot=True,
     )
 

@@ -6,6 +6,38 @@ from src.mlp import evaluate_individual
 from src.cli import ProgressBarManager
 
 
+def generate_layer_arrangement(max_layers=5, max_neurons=32, min_neurons=8, step=4):
+    """
+    Generate a random layer arrangement where:
+    - The number of layers is random, up to `max_layers`.
+    - Neurons in each layer decrease as you progress through the layers.
+
+    Args:
+        max_layers (int): Maximum number of layers.
+        max_neurons (int): Maximum neurons in the first layer.
+        min_neurons (int): Minimum neurons in any layer.
+        step (int): Step size for the number of neurons.
+
+    Returns:
+        list[int]: A list representing the number of neurons in each layer.
+    """
+    # Choose a random number of layers (1 to max_layers)
+    num_layers = random.randint(1, max_layers)
+
+    # Generate a decreasing sequence of neurons
+    available_neurons = list(range(min_neurons, max_neurons + 1, step))
+    layers = []
+    for _ in range(num_layers):
+        if not available_neurons:
+            break
+        neurons = random.choice(available_neurons)
+        layers.append(neurons)
+        # Ensure subsequent layers have fewer neurons
+        available_neurons = [n for n in available_neurons if n < neurons]
+
+    return layers
+
+
 # Custom mutation function for "hidden_layers"
 def mutate_hidden_layers(layers):
     layers = list(layers)
@@ -29,28 +61,7 @@ search_space = {
         "mutation": lambda val: max(0.0, min(0.5, val + random.choice([-0.05, 0.05]))),
     },
     "hidden_layers": {
-        "values": [
-            (8,),
-            (16,),
-            (24,),
-            (32,),
-            (8, 8),
-            (8, 16),
-            (8, 24),
-            (8, 32),
-            (16, 8),
-            (16, 16),
-            (16, 24),
-            (16, 32),
-            (24, 8),
-            (24, 16),
-            (24, 24),
-            (24, 32),
-            (32, 8),
-            (32, 16),
-            (32, 24),
-            (32, 32),
-        ],
+        "value": generate_layer_arrangement,
         "mutation": mutate_hidden_layers,
     },
     "learning_rate": {
@@ -134,7 +145,7 @@ def crossover_and_mutate(parents, population_size):
 def genetic_algorithm(
     num_generations=16,
     population_size=20,
-    patience=5,
+    patience=10,
     batch_size=32,
     max_workers=4,
     progress_manager: ProgressBarManager = None,
@@ -143,7 +154,7 @@ def genetic_algorithm(
     # Initialize the population
     population = [
         {
-            "hidden_layers": random.choice(search_space["hidden_layers"]["values"]),
+            "hidden_layers": search_space["hidden_layers"]["value"](),
             "dropout_rate": random.choice(search_space["dropout_rate"]["values"]),
             "learning_rate": random.choice(search_space["learning_rate"]["values"]),
             "weight_decay": random.choice(search_space["weight_decay"]["values"]),

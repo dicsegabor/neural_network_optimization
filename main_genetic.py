@@ -7,8 +7,8 @@ if __name__ == "__main__":
     # Preprocess data
     data_handler = DataHandler("data/melb_data.csv")
 
-    num_generations = 2
-    population_size = 8
+    num_generations = 10
+    population_size = 6
 
     progress_manager = ProgressBarManager(num_generations, population_size)
 
@@ -16,8 +16,8 @@ if __name__ == "__main__":
     best_hyperparameters = genetic_algorithm(
         num_generations=num_generations,
         population_size=population_size,
-        patience=5,
-        max_workers=4,
+        patience=10,
+        max_workers=8,
         progress_manager=progress_manager,
     )
     print("\nBest Hyperparameters:", best_hyperparameters)
