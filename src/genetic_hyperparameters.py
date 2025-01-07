@@ -202,22 +202,6 @@ def genetic_algorithm(
                 best_fitness = mse
                 best_individual = population[i]
 
-        # Early stopping logic
-        if best_fitness < float("inf"):
-            early_stop_counter = 0
-        else:
-            early_stop_counter += 1
-
-        if early_stop_counter >= patience:
-            if progress_manager:
-                progress_manager.generation_bar.set_postfix({"Status": "Early stop"})
-                progress_manager.generation_bar.total = (
-                    progress_manager.generation_bar.n
-                )
-                # Fill the progress bar
-                progress_manager.generation_bar.update(0)  # Refresh
-            break
-
         # Select parents (tournament selection)
         parents = select_parents(
             population, fitness_scores, num_parents=population_size // 2
