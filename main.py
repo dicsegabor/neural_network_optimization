@@ -193,10 +193,16 @@ if __name__ == "__main__":
 
     # Initialize the model
     input_size = x_train.shape[1]
-    model = MLPRegression(input_size=input_size, dropout_rate=0.2, hidden_layers=(8,))
+    model = MLPRegression(
+        input_size=input_size, dropout_rate=0.2, hidden_layers=(32, 24)
+    )
 
     # Define optimizer and loss function
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001, weight_decay=1e-5)
+    optimizer = torch.optim.Adam(
+        model.parameters(),
+        lr=0.0069519279617756054,
+        weight_decay=2.1544346900318823e-05,
+    )
     criterion = torch.nn.MSELoss()
 
     # Train the model
