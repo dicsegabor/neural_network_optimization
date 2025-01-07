@@ -1,4 +1,6 @@
 from typing import Tuple
+import random
+import time
 
 import pandas as pd
 import numpy as np
@@ -13,6 +15,8 @@ class DataHandler:
     _training_data: Tuple[np.ndarray, np.ndarray] = (np.array([]), np.array([]))
 
     def __init__(self, file_path="data/melb_data.csv"):
+        random.seed(time.time())
+
         # Load dataset
         df = pd.read_csv(file_path)
 
@@ -84,7 +88,7 @@ class DataHandler:
         return x_train, x_test, y_train, y_test
 
     @staticmethod
-    def prepare_dataloaders(batch_size=32, test_ratio=0.2, validation_set=False):
+    def prepare_dataloaders(batch_size=32, test_ratio=0.2, validaion_ratio=0.2):
         x_train, x_test, y_train, y_test = DataHandler.split_traning_data(test_ratio)
 
         # Convert to PyTorch tensors
@@ -101,7 +105,7 @@ class DataHandler:
         train_dataset = TensorDataset(x_train_tensor, y_train_tensor)
 
         # Split into training and validation sets
-        train_size = int((0.8 if validation_set else 1) * len(train_dataset))
+        train_size = int((1 - validaion_ratio) * len(train_dataset))
         val_size = len(train_dataset) - train_size
         train_subset, val_subset = torch.utils.data.random_split(
             train_dataset, [train_size, val_size]
