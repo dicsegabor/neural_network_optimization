@@ -153,7 +153,6 @@ def genetic_algorithm(
 
     best_individual = None
     best_fitness = float("inf")
-    early_stop_counter = 0
 
     if progress_manager:
         progress_manager.start_generation_bar()

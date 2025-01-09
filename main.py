@@ -8,10 +8,10 @@ if __name__ == "__main__":
     data_handler = DataHandler("data/melb_data.csv")
 
     individual = {
-        "hidden_layers": (32, 24),
+        "hidden_layers": (10, 5, 5),
         "dropout_rate": 0.2,
-        "learning_rate": 0.0069519279617756054,
-        "weight_decay": 2.1544346900318823e-05,
+        "learning_rate": 0.0001,
+        "weight_decay": 1e-04,
     }
 
     test_predictions, y_test_exp, mse, mae, r2 = evaluate_individual(

@@ -24,7 +24,18 @@ class DataHandler:
         df = df.dropna(subset=["Price"])
 
         # Define features and target, dropping unnecessary columns
-        x = df.drop(columns=["Price", "Address", "Date", "SellerG", "CouncilArea"])
+        x = df.drop(
+            columns=[
+                "Suburb",
+                "Price",
+                "Address",
+                "Date",
+                "SellerG",
+                "CouncilArea",
+                "Postcode",
+                "Regionname",
+            ]
+        )
         y = df["Price"]
 
         # Log transformation and clipping
@@ -41,11 +52,12 @@ class DataHandler:
             "Landsize",
             "BuildingArea",
             "YearBuilt",
-            "Lattitude",
-            "Longtitude",
             "Propertycount",
         ]
-        categorical_features = ["Suburb", "Type", "Method", "Postcode", "Regionname"]
+        categorical_features = [
+            "Type",
+            "Method",
+        ]
 
         # Check for missing columns
         missing_columns = [
@@ -92,8 +104,8 @@ class DataHandler:
         x_train, x_test, y_train, y_test = DataHandler.split_traning_data(test_ratio)
 
         # Convert to PyTorch tensors
-        x_train_tensor = torch.tensor(x_train.toarray(), dtype=torch.float32)
-        x_test_tensor = torch.tensor(x_test.toarray(), dtype=torch.float32)
+        x_train_tensor = torch.tensor(x_train, dtype=torch.float32)
+        x_test_tensor = torch.tensor(x_test, dtype=torch.float32)
         y_train_tensor = torch.tensor(y_train.values, dtype=torch.float32).view(
             -1, 1
         )  # Fixed: Use `.values`

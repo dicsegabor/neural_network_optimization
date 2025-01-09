@@ -176,6 +176,8 @@ def evaluate_individual(
 ):
     x_train, _, _, _ = DataHandler.split_traning_data(test_ratio)
 
+    print(f"Parameter count: {x_train.shape[1]}")
+
     # Initialize the model with the individual's hyperparameters
     model = MLPRegression(
         input_size=x_train.shape[1],
